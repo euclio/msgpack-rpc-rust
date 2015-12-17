@@ -1,0 +1,13 @@
+[package]
+name = "msgpack-rpc"
+version = "0.1.0"
+authors = ["Andy Russell <arussell123@gmail.com>"]
+
+[dependencies]
+env_logger = "0.3"
+rmp = "^0.7"
+rmp-serde = "0.8.2"
+serde = "*"
+
+[dependencies.mioco]
+git = "https://github.com/dpc/mioco"
