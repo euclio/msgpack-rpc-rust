@@ -12,6 +12,8 @@ use message::Request;
 
 pub trait Dispatch {
     fn dispatch(&mut self, method: &str, args: Vec<Value>) -> Result<Value, Value>;
+
+    #[allow(unused_variables)]
     fn notify(&mut self, method: &str, args: Vec<Value>) {}
 }
 
@@ -30,7 +32,7 @@ impl Server {
         self.listener.local_addr()
     }
 
-    pub fn handle<D>(&self, mut dispatcher: D)
+    pub fn handle<D>(&self, dispatcher: D)
         where D: Dispatch + Send + Sync + Clone + 'static
     {
         let listener = self.listener.try_clone().unwrap();
