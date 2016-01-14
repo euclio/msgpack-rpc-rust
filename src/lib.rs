@@ -5,6 +5,7 @@ extern crate rmp as msgpack;
 extern crate rmp_serde;
 
 mod message;
+mod server;
 
 use std::collections::HashMap;
 use std::io::prelude::*;
@@ -16,6 +17,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use msgpack::Value;
 
 pub use message::*;
+pub use server::*;
 
 type MessageId = i32;
 
