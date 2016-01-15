@@ -7,6 +7,7 @@ use std::sync::{mpsc, Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use mioco::Evented;
+use mioco::unix;
 use msgpack::Value;
 
 use ::message::*;
@@ -45,6 +46,24 @@ impl Client {
         client.start_event_loop(transport.try_clone().unwrap(),
                                 transport.try_clone().unwrap(),
                                 receiver);
+        client
+    }
+
+    /// Connect to a msgpack-RPC server through a pipe.
+    pub fn connect_pipe() -> Client {
+        let (sender, receiver) = mpsc::channel();
+
+        let request_map = Arc::new(Mutex::new(HashMap::new()));
+
+        let client = Client {
+            sender: sender,
+            request_map: request_map,
+            id_generator: AtomicUsize::new(0),
+        };
+
+        let (stdin, stdout) = unix::pipe().unwrap();
+
+        client.start_event_loop(stdin, stdout, receiver);
         client
     }
 
