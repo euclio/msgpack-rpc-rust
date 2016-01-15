@@ -6,6 +6,7 @@ use std::thread;
 use std::sync::{mpsc, Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use mioco::Evented;
 use msgpack::Value;
 
 use ::message::*;
@@ -27,7 +28,7 @@ impl Client {
     /// Connect to a msgpack-RPC server.
     ///
     /// This function returns a client that is bound to a particular socket address.
-    pub fn connect<A>(transport: A) -> Client
+    pub fn connect_socket<A>(transport: A) -> Client
         where A: ToSocketAddrs
     {
         let transport = TcpStream::connect(transport).unwrap();
@@ -35,14 +36,30 @@ impl Client {
 
         let request_map = Arc::new(Mutex::new(HashMap::new()));
 
-        let local_request_map = request_map.clone();
+        let client = Client {
+            sender: sender,
+            request_map: request_map,
+            id_generator: AtomicUsize::new(0),
+        };
 
+        client.start_event_loop(transport.try_clone().unwrap(),
+                                transport.try_clone().unwrap(),
+                                receiver);
+        client
+    }
+
+    fn start_event_loop<R, W>(&self,
+                              mut reader: R,
+                              mut writer: W,
+                              request_recv: mpsc::Receiver<Message>)
+        where R: Read + Send + 'static,
+              W: Write + Send + 'static
+    {
         // Requests
-        let mut writer = transport.try_clone().unwrap();
         thread::Builder::new()
             .name("client request handler".to_owned())
             .spawn(move || {
-                for request in receiver.iter() {
+                for request in request_recv.iter() {
                     let request = match request {
                         Message::Request(request) => request,
                         _ => unimplemented!(),
@@ -54,7 +71,7 @@ impl Client {
             .unwrap();
 
         // Responses
-        let mut reader = transport.try_clone().unwrap();
+        let local_request_map = self.request_map.clone();
         thread::Builder::new()
             .name("client response handler".to_owned())
             .spawn(move || {
@@ -75,11 +92,6 @@ impl Client {
             })
             .unwrap();
 
-        Client {
-            sender: sender,
-            request_map: request_map,
-            id_generator: AtomicUsize::new(0),
-        }
     }
 
     fn next_id(&mut self) -> MessageId {

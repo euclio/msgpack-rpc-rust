@@ -21,7 +21,7 @@ impl Dispatch for EchoServer {
 #[test]
 fn echo() {
     let server = Server::bind("localhost:0").unwrap();
-    let mut client = Client::connect(server.local_addr().unwrap());
+    let mut client = Client::connect_socket(server.local_addr().unwrap());
 
     thread::spawn(move || {
         server.handle(EchoServer);
@@ -35,7 +35,7 @@ fn echo() {
 #[test]
 fn invalid_method_name() {
     let server = Server::bind("localhost:0").unwrap();
-    let mut client = Client::connect(server.local_addr().unwrap());
+    let mut client = Client::connect_socket(server.local_addr().unwrap());
 
     thread::spawn(move || {
         server.handle(EchoServer);
