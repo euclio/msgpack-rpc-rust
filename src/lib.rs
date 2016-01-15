@@ -1,4 +1,7 @@
-#![warn(missing_docs)]
+//! This crate provides facilities to use the MessagePack remote procedure call system
+//! (msgpack-RPC) in Rust.
+
+#![deny(missing_docs)]
 
 extern crate mioco;
 extern crate rmp as msgpack;

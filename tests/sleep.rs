@@ -32,7 +32,7 @@ impl Dispatch for SleepServer {
 /// Ensures that requests that finish before long running requests are returned.
 fn async() {
     let server = Server::bind("localhost:0").unwrap();
-    let mut client = Client::new(server.local_addr().unwrap());
+    let mut client = Client::connect(server.local_addr().unwrap());
 
     thread::spawn(move || server.handle(SleepServer));
 
@@ -50,7 +50,7 @@ fn async() {
 #[test]
 fn sleep() {
     let server = Server::bind("localhost:0").unwrap();
-    let mut client = Client::new(server.local_addr().unwrap());
+    let mut client = Client::connect(server.local_addr().unwrap());
 
     thread::spawn(move || server.handle(SleepServer));
 

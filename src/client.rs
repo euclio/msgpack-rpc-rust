@@ -12,6 +12,11 @@ use ::message::*;
 
 type MessageId = i32;
 
+/// A new msgpack-RPC client.
+///
+/// The client connects to a server through a transport, and sends and receives RPC messages
+/// through that transport. Messages may be sent synchronously or asynchronously. Similarly,
+/// responses may be received synchronously or asynchronously.
 pub struct Client {
     sender: mpsc::Sender<Message>,
     request_map: Arc<Mutex<HashMap<MessageId, mpsc::Sender<Result<Value, Value>>>>>,
@@ -19,7 +24,10 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new<A>(transport: A) -> Client
+    /// Connect to a msgpack-RPC server.
+    ///
+    /// This function returns a client that is bound to a particular socket address.
+    pub fn connect<A>(transport: A) -> Client
         where A: ToSocketAddrs
     {
         let transport = TcpStream::connect(transport).unwrap();
@@ -86,6 +94,9 @@ impl Client {
         id
     }
 
+    /// Sends a msgpack-RPC message asynchrouously.
+    ///
+    /// Returns a `mpsc::Channel` that can be blocked on for the result.
     pub fn async_call(&mut self,
                       method: &str,
                       params: Vec<Value>)
@@ -104,6 +115,10 @@ impl Client {
         rx
     }
 
+    /// Sends a msgpack-RPC message synchrouously.
+    ///
+    /// The request will be sent, and the client will block until a response is received, returning
+    /// the result.
     pub fn call(&mut self, method: &str, params: Vec<Value>) -> Result<Value, Value> {
         let receiver = self.async_call(method, params);
         receiver.recv().unwrap()
