@@ -14,7 +14,7 @@ use message::Request;
 ///
 /// When a msgpack-RPC request is sent to the server, the server will delegate to the implementor
 /// of this trait.
-pub trait Dispatch {
+pub trait Dispatch: Clone + Send + Sync {
 
     /// Respond to a remote procedure call.
     ///
