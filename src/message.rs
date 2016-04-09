@@ -128,7 +128,7 @@ impl Message {
 
     pub fn pack(&self) -> Vec<u8> {
         let value = match *self {
-            Message::Request(Request { id, ref method, ref params, }) => {
+            Message::Request(Request { id, ref method, ref params }) => {
                 Value::Array(vec![
                     Value::Integer(Integer::U64(self.msgtype() as u64)),
                     Value::Integer(Integer::U64(id as u64)),

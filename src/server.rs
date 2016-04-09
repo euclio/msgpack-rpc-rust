@@ -15,7 +15,6 @@ use message::Request;
 /// When a msgpack-RPC request is sent to the server, the server will delegate to the implementor
 /// of this trait.
 pub trait Dispatch {
-
     /// Respond to a remote procedure call.
     ///
     /// In most implementations, the implementor should switch on the value of the method, and pass
@@ -62,7 +61,7 @@ impl Server {
         let listener = self.listener.try_clone().unwrap();
         let local_addr = self.local_addr().unwrap().clone();
 
-        mioco::start(move || {
+        mioco::start(move || -> io::Result<()> {
             let listener = NonblockingTcpListener::from_listener(listener, &local_addr).unwrap();
             loop {
                 let mut conn = try!(listener.accept());
@@ -72,7 +71,7 @@ impl Server {
                     let mut conn = conn.try_clone().unwrap();
 
                     let mut dispatcher = dispatcher.clone();
-                    mioco::spawn(move || {
+                    mioco::spawn(move || -> io::Result<()> {
                         match request {
                             Message::Request(Request { id, method, params }) => {
                                 let result = dispatcher.dispatch(&method, params);
@@ -90,6 +89,8 @@ impl Server {
                     });
                 }
             }
-        });
+        })
+            .unwrap()
+            .unwrap();
     }
 }
