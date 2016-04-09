@@ -29,6 +29,32 @@ pub trait Dispatch {
     fn notify(&mut self, method: &str, args: Vec<Value>) {}
 }
 
+pub trait BidirectionalDispatch {
+    fn dispatch(&mut self,
+                client: Box<Dispatch>,
+                method: &str,
+                args: Vec<Value>)
+                -> Result<Value, Value>;
+
+    fn notify(&mut self, client: Box<Dispatch>, method: &str, args: Vec<Value>);
+}
+
+impl<D> BidirectionalDispatch for D
+    where D: Dispatch
+{
+    fn dispatch(&mut self,
+                client: Box<Dispatch>,
+                method: &str,
+                args: Vec<Value>)
+                -> Result<Value, Value> {
+        Dispatch::dispatch(self, method, args)
+    }
+
+    fn notify(&mut self, client: Box<Dispatch>, method: &str, args: Vec<Value>) {
+        Dispatch::notify(self, method, args);
+    }
+}
+
 /// A msgpack-RPC server.
 ///
 /// The server will response to RPC requests and notifications and dispatch them appropriately.
@@ -56,7 +82,7 @@ impl Server {
     ///
     /// This method does not return.
     pub fn handle<D>(&self, dispatcher: D)
-        where D: Dispatch + Send + Sync + Clone + 'static
+        where D: BidirectionalDispatch + Dispatch + Send + Sync + Clone + 'static + Default
     {
         let listener = self.listener.try_clone().unwrap();
         let local_addr = self.local_addr().unwrap().clone();
@@ -74,7 +100,11 @@ impl Server {
                     mioco::spawn(move || -> io::Result<()> {
                         match request {
                             Message::Request(Request { id, method, params }) => {
-                                let result = dispatcher.dispatch(&method, params);
+                                let result =
+                                    BidirectionalDispatch::dispatch(&mut dispatcher,
+                                                                    Box::new(D::default()),
+                                                                    &method,
+                                                                    params);
                                 let response = Message::Response(Response {
                                     id: id,
                                     result: result,

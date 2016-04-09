@@ -8,7 +8,7 @@ use msgpack::Value;
 use msgpack::value::Integer;
 use msgpack_rpc::*;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct SleepServer;
 
 impl Dispatch for SleepServer {

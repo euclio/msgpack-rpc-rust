@@ -6,7 +6,7 @@ use std::thread;
 use msgpack::Value;
 use msgpack_rpc::*;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 struct EchoServer;
 
 impl Dispatch for EchoServer {
