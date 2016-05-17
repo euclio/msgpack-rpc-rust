@@ -38,7 +38,6 @@ impl Dispatch for EchoCallClient {
 }
 
 #[test]
-#[should_panic]
 fn default_client_dispatch() {
     let server = Server::bind("localhost:0").unwrap();
     let mut client = Client::new().connect_socket(server.local_addr().unwrap());

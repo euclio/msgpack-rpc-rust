@@ -59,7 +59,8 @@ impl Client {
     }
 }
 
-impl<D> ClientHandle<D> where D: Dispatch
+impl<D> ClientHandle<D>
+    where D: Dispatch
 {
     /// Connect to a msgpack-RPC server.
     ///
@@ -98,7 +99,7 @@ impl<D> ClientHandle<D> where D: Dispatch
         let request_writer_sender = writer_sender.clone();
         thread::Builder::new()
             .name("request_handler".to_owned())
-            .spawn(move || {
+            .spawn(move || -> () {
                 for request in request_recv.iter() {
                     if let Message::Request(..) = request {
                         request_writer_sender.send(request).unwrap();
@@ -111,7 +112,7 @@ impl<D> ClientHandle<D> where D: Dispatch
 
         thread::Builder::new()
             .name("writer handler".to_owned())
-            .spawn(move || {
+            .spawn(move || -> () {
                 for message in writer_receiver.iter() {
                     writer.write_all(&message.pack()).unwrap();
                 }
@@ -122,7 +123,7 @@ impl<D> ClientHandle<D> where D: Dispatch
         let mut dispatcher = self.dispatcher.clone();
         thread::Builder::new()
             .name("reader handler".to_owned())
-            .spawn(move || {
+            .spawn(move || -> () {
                 loop {
                     let message = Message::unpack(&mut reader).unwrap();
 
